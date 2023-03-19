@@ -1,6 +1,6 @@
 fn main() {
     // Parse strategy guide
-    let strategy_data = include_str!("input.txt").trim().replace("\r", "");
+    let strategy_data = include_str!("day2.txt").trim().replace("\r", "");
     let strategy = strategy_data.lines().map(|line| Play::from(line));
 
     // Solve part 1 by totaling our score

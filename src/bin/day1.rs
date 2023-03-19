@@ -1,5 +1,5 @@
 fn main() {
-    let calories = include_str!("input.txt").trim().replace("\r", "");
+    let calories = include_str!("day1.txt").trim().replace("\r", "");
 
     // Parse input into groups by elf and then convert+sum each elf
     let calories_per_elf = calories.split("\n\n").map(|calorie_list| {
