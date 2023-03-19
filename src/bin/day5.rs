@@ -26,12 +26,16 @@ fn main() {
         });
     }
 
-    println!("Part 1: {}", part1(cargo_hold.clone(), &crane_actions));
+    println!("Part 1: {}", run_simulation(CraneModel::CrateMover9000, cargo_hold.clone(), &crane_actions));
+    println!("Part 2: {}", run_simulation(CraneModel::CrateMover9001, cargo_hold.clone(), &crane_actions));
 }
 
-fn part1(mut cargo_hold: CargoHold, crane_actions: &Vec<CraneAction>) -> String {
+fn run_simulation(crane: CraneModel, mut cargo_hold: CargoHold, crane_actions: &Vec<CraneAction>) -> String {
     for crane_action in crane_actions {
-        cargo_hold.move_crates(crane_action.from, crane_action.to, crane_action.count);
+        match crane {
+            CraneModel::CrateMover9000 => cargo_hold.move_crates(crane_action.from, crane_action.to, crane_action.count),
+            CraneModel::CrateMover9001 => cargo_hold.move_crates_9001(crane_action.from, crane_action.to, crane_action.count),
+        }
     }
 
     let mut result = String::new();
@@ -42,6 +46,11 @@ fn part1(mut cargo_hold: CargoHold, crane_actions: &Vec<CraneAction>) -> String 
     }
 
     return result;
+}
+
+enum CraneModel {
+    CrateMover9000,
+    CrateMover9001,
 }
 
 #[derive(Clone)]
@@ -89,7 +98,7 @@ impl CargoHold {
     }
 
     #[cfg(feature = "nightly")]
-    fn move_crates(&mut self, from: usize, to: usize, count: i32) {
+    fn move_crates(&mut self, from: usize, to: usize, count: usize) {
         // If the stacks are the same nothing will happen
         if from == to {
             return;
@@ -104,7 +113,7 @@ impl CargoHold {
     }
 
     #[cfg(not(feature = "nightly"))]
-    fn move_crates(&mut self, from: usize, to: usize, count: i32) {
+    fn move_crates(&mut self, from: usize, to: usize, count: usize) {
         // If the stacks are the same nothing will happen
         if from == to {
             return;
@@ -115,6 +124,18 @@ impl CargoHold {
                 self.stacks[to].push(c);
             }
         }
+    }
+
+    fn move_crates_9001(&mut self, from: usize, to: usize, count: usize) {
+        // If the stacks are the same nothing will happen
+        if from == to {
+            return;
+        }
+
+        let from = &mut self.stacks[from];
+        let split = from.len() - count;
+        let mut to_move: Vec<_> = from.drain(split..).collect();
+        self.stacks[to].append(&mut to_move);
     }
 
     fn peek_stack(&self, stack_num: usize) -> Option<&char> {
@@ -128,7 +149,7 @@ impl CargoHold {
 
 #[derive(Clone)]
 struct CraneAction {
-   count: i32,
+   count: usize,
    from: usize,
    to: usize,
 }
