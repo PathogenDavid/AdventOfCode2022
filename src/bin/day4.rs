@@ -1,7 +1,10 @@
+use std::ops::RangeInclusive;
+
 fn main() {
     let assignments = include_str!("day4.txt").trim().replace("\r", "");
     println!("Part 1: {}", part1(&assignments));
     println!("Part 2: {}", part2(&assignments));
+    println!("Part 2: {} (Alt solution)", part2_alt(&assignments));
 }
 
 fn part1(assignments: &str) -> usize {
@@ -32,6 +35,10 @@ fn part2(assignments: &str) -> usize {
         .count()
 }
 
+//-------------------------------------------------------------------------------------------------
+// Pair extension for Iterator used for non-alt soltuions (because I didn't know about `split_once`
+//-------------------------------------------------------------------------------------------------
+
 trait Pair {
     type Item;
 
@@ -49,4 +56,26 @@ impl<T: Iterator> Pair for T {
         assert!(self.next().is_none(), "iterator yielded more than two items");
         (a, b)
     }
+}
+
+//-------------------------------------------------------------------------------------------------
+// Part 2 alternate solution
+//-------------------------------------------------------------------------------------------------
+
+// I did not know about split_once or Option<T>::map, thanks again Chevy!
+fn part2_alt(assignments: &str) -> usize {
+    fn parse_range(range: &str) -> RangeInclusive<i32> {
+        range.split_once('-')
+            .map(|(a, b)| a.parse().unwrap()..=b.parse().unwrap())
+            .unwrap()
+    }
+
+    assignments.lines()
+        // Parse lines to range pairs
+        .map(|pair| pair.split_once(',').unwrap())
+        .map(|(a, b)| (parse_range(a), parse_range(b)))
+        // Filter to pairs where ranges overlap
+        //             (a's start is within b) or (b's start is wthin a)
+        .filter(|(a, b)| a.contains(b.start()) || b.contains(a.start()))
+        .count()
 }
