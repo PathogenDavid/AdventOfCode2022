@@ -2,7 +2,11 @@ use std::collections::HashSet;
 
 fn main() {
     let inventory = include_str!("day3.txt").trim().replace("\r", "");
+    println!("Part 1: {}", part1(&inventory));
+    println!("Part 2: {}", part2(&inventory));
+}
 
+fn part1(inventory: &str) -> u32 {
     let mut priority_sum = 0;
 
     for rucksack in inventory.lines() {
@@ -18,7 +22,27 @@ fn main() {
         }
     }
 
-    println!("Part 1: {priority_sum}");
+    priority_sum
+}
+
+fn part2(inventory: &str) -> u32 {
+    let mut priority_sum = 0;
+
+    let mut lines = inventory.lines();
+    while let (Some(rucksack1), rucksack2, rucksack3) = (lines.next(), lines.next(), lines.next()) {
+        // Take inventory of the first elf's rucksack
+        let rucksack1: HashSet<_> = rucksack1.chars().collect();
+        // Take inventory of the second elf's rucksack, only counting items that were found in the first elf's rucksack
+        let rucksack2: HashSet<_> = rucksack2.unwrap().chars().filter(|item| rucksack1.contains(item)).collect();
+        // And so on for the third elf, expecting to find a single item
+        // (We enumerate the whole set because the elf might have more than one of the item)
+        let rucksack3: HashSet<_> = rucksack3.unwrap().chars().filter(|item| rucksack2.contains(item)).collect();
+
+        assert_eq!(rucksack3.len(), 1, "the three elves should only have a single item in common");
+        priority_sum += get_item_priority(*rucksack3.iter().next().unwrap());
+    }
+
+    priority_sum
 }
 
 fn get_item_priority(item: char) -> u32 {
