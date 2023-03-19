@@ -1,13 +1,17 @@
-#![allow(unused)]
+use std::collections::HashSet;
 
 fn main() {
     let data_streams = include_str!("day6.txt").trim().replace("\r", "");
 
-    for (i, data_stream) in data_streams.lines().enumerate() {
+    println!("Part 1 / Part 2");
+    for data_stream in data_streams.lines() {
         println!(
-            "{}{}",
-            if i == 0 { "Part 1: " } else { "        " },
-            match part1(data_stream) {
+            "{} / {}",
+            match find_marker(data_stream, 4) {
+                Ok(x) => x.to_string(),
+                Err(e) => e.to_string(),
+            },
+            match find_marker(data_stream, 14) {
                 Ok(x) => x.to_string(),
                 Err(e) => e.to_string(),
             }
@@ -15,11 +19,16 @@ fn main() {
     }
 }
 
-fn part1(data_stream: &str) -> Result<usize, &str> {
+fn find_marker(data_stream: &str, marker_len: usize) -> Result<usize, &str> {
     let data_stream: Vec<_> = data_stream.chars().collect();
-    for i in 3..data_stream.len() {
-        let [a, b, c, d] = &data_stream[i - 3..=i] else { unreachable!(); };
-        if a != b && a != c && a != d && b != c && b != d && c != d {
+    let mut check = HashSet::with_capacity(marker_len);
+    let offset = marker_len - 1;
+
+    for i in offset..data_stream.len() {
+        check.clear();
+
+        // If all characters are unique, we found the message
+        if data_stream[i - offset..=i].iter().all(|c| check.insert(c)) {
             return Ok(i + 1);
         }
     }
