@@ -1,5 +1,5 @@
 // Saw this and thought it was a good excuse to mess with condtitional compilation
-#![cfg_attr(feature = "nightly" , feature(get_many_mut))]
+#![cfg_attr(feature = "nightly", feature(get_many_mut))]
 
 // Regex is overkill here, just wanted an excuse to try the crate
 use regex::Regex;
@@ -60,7 +60,8 @@ struct CargoHold {
 
 impl CargoHold {
     fn new<'a, I>(data: &mut I) -> CargoHold
-    where I : Iterator<Item = &'a str>
+    where
+        I : Iterator<Item = &'a str>,
     {
         let mut stacks = Vec::new();
 
@@ -149,7 +150,7 @@ impl CargoHold {
 
 #[derive(Clone)]
 struct CraneAction {
-   count: usize,
-   from: usize,
-   to: usize,
+    count: usize,
+    from: usize,
+    to: usize,
 }
