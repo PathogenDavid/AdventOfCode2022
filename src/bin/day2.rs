@@ -59,7 +59,7 @@ impl Move {
 enum Outcome {
     Win,
     Loss,
-    Tie
+    Tie,
 }
 
 impl Outcome {
@@ -80,8 +80,7 @@ struct Play {
 
 impl Play {
     fn your_points(&self) -> i32 {
-        self.your_move.score() +
-            self.your_move.beats(self.their_move).score()
+        self.your_move.score() + self.your_move.beats(self.their_move).score()
     }
 
     fn from_part2(value: &str) -> Self {

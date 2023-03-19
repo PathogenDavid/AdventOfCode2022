@@ -8,12 +8,13 @@ fn main() {
 }
 
 fn part1(assignments: &str) -> usize {
-    assignments.lines()
+    assignments
+        .lines()
         // Parse lines to range pairs
         .map(|pair| {
-            pair.split(",").map(|range| {
-                range.split("-").map(|i| i.parse::<i32>().unwrap()).pair()
-            }).pair()
+            pair.split(",")
+                .map(|range| range.split("-").map(|i| i.parse::<i32>().unwrap()).pair())
+                .pair()
         })
         // Filter to pairs where one range fits within another
         //                            (a fits in b) or (b fits in a)
@@ -22,12 +23,13 @@ fn part1(assignments: &str) -> usize {
 }
 
 fn part2(assignments: &str) -> usize {
-    assignments.lines()
+    assignments
+        .lines()
         // Parse lines to range pairs
         .map(|pair| {
-            pair.split(",").map(|range| {
-                range.split("-").map(|i| i.parse::<i32>().unwrap()).pair()
-            }).pair()
+            pair.split(",")
+                .map(|range| range.split("-").map(|i| i.parse::<i32>().unwrap()).pair())
+                .pair()
         })
         // Filter to pairs where ranges overlap
         //                  (a's start is within b) or (b's start is wthin a)
@@ -65,12 +67,14 @@ impl<T: Iterator> Pair for T {
 // I did not know about split_once or Option<T>::map, thanks again Chevy!
 fn part2_alt(assignments: &str) -> usize {
     fn parse_range(range: &str) -> RangeInclusive<i32> {
-        range.split_once('-')
+        range
+            .split_once('-')
             .map(|(a, b)| a.parse().unwrap()..=b.parse().unwrap())
             .unwrap()
     }
 
-    assignments.lines()
+    assignments
+        .lines()
         // Parse lines to range pairs
         .map(|pair| pair.split_once(',').unwrap())
         .map(|(a, b)| (parse_range(a), parse_range(b)))
