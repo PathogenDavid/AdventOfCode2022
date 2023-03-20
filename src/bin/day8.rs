@@ -1,7 +1,3 @@
-#![allow(unused)]
-
-use std::ops::Range;
-
 // I should've made a little 2D grid data structure but it's too late now :(
 fn main() {
     //=============================================================================================
@@ -43,14 +39,17 @@ fn main() {
     //=============================================================================================
     // Part 1: Count the number of visible trees
     //=============================================================================================
-    let total_visible: usize = trees.iter().map(|r| r.iter().filter(|t| t.is_visible).count()).sum();
+    let total_visible: usize = trees
+        .iter()
+        .map(|r| r.iter().filter(|t| t.is_visible).count())
+        .sum();
     println!("Part 1: {total_visible}");
 
     //=============================================================================================
     // Part 2: Find the tree with the highest scenic score
     //=============================================================================================
     let mut highest_score = 0;
-    for (row_num, row) in trees.iter().enumerate() {
+    for row_num in 0..num_rows {
         for col_num in 0..num_cols {
             let scenic_score
                 = calculate_partial_scenic_score(&trees, (row_num, col_num), (1, 0), (num_rows, num_cols))
@@ -92,7 +91,12 @@ where
     }
 }
 
-fn calculate_partial_scenic_score(trees: &Vec<Vec<Tree>>, start: (usize, usize), direction: (isize, isize), counts: (usize, usize)) -> u32 {
+fn calculate_partial_scenic_score(
+    trees: &Vec<Vec<Tree>>,
+    start: (usize, usize),
+    direction: (isize, isize),
+    counts: (usize, usize),
+) -> u32 {
     let mut row = start.0;
     let mut col = start.1;
     let check_height = trees[row][col].height;
