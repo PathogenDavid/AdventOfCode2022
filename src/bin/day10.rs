@@ -6,6 +6,9 @@ fn main() {
     let mut signal_sum = 0;
     let sample_points = [20, 60, 100, 140, 180, 220];
 
+    const DISPLAY_WIDTH: i32 = 40;
+    let mut output: String = String::with_capacity(((DISPLAY_WIDTH + 1) * 6) as usize); // +1 for newlines
+
     for instruction in program.lines() {
         let (cost, add_x) = if instruction == "noop" {
             (1, 0)
@@ -16,6 +19,17 @@ fn main() {
 
         // Simulate the instruction
         for _ in 0..cost {
+            let column = cycle % DISPLAY_WIDTH;
+            if i32::abs(column - x) <= 1 {
+                output.push('#');
+            } else {
+                output.push('.');
+            }
+
+            if column == DISPLAY_WIDTH - 1 {
+                output.push('\n');
+            }
+
             cycle += 1;
 
             if sample_points.contains(&cycle) {
@@ -27,4 +41,6 @@ fn main() {
     }
 
     println!("Part 1: {signal_sum}");
+    println!("Part 2:");
+    println!("{output}");
 }
