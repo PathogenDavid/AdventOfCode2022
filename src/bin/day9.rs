@@ -7,6 +7,12 @@ fn main() {
     println!("Part 2: {}", simulate(&movements, 9, 0));
 }
 
+/// debug_level controls the debug verbosity.
+/// * 0 - no output
+/// * 1 - print board after every move
+/// * 2 - print board after every step of every move
+///
+/// (Note: Printing the board requires manually specifying board_span_width and  board_span_height in print_board.)
 fn simulate(movements: &String, tail_count: usize, debug_level: i32) -> usize {
     let mut head: (i32, i32) = (0, 0);
     let mut tails: Vec<(i32, i32)> = vec![(0, 0); tail_count];
@@ -79,32 +85,24 @@ fn simulate(movements: &String, tail_count: usize, debug_level: i32) -> usize {
     visited_spaces.len()
 }
 
-#[allow(dead_code)]
 fn print_board(head: (i32, i32), tails: &Vec<(i32, i32)>) {
     println!();
     //let (board_span_width, board_span_height) = (0..6, 0..5); // Sample
     let (board_span_width, board_span_height) = (-11..15, -5..16); // Sample 2
 
     for y in board_span_height.into_iter().rev() {
-        'row_loop: for x in board_span_width.clone() {
+        for x in board_span_width.clone() {
             let pos = (x, y);
+
             if pos == head {
                 print!("H");
-                continue;
-            }
-
-            for (i, tail) in tails.iter().enumerate() {
-                if pos == *tail {
-                    if i == 0 && tails.len() == 1 {
-                        print!("T");
-                    } else {
-                        print!("{}", i + 1)
-                    }
-                    continue 'row_loop;
+            } else if let Some(i) = tails.iter().position(|t| pos == *t) {
+                if tails.len() == 1 {
+                    print!("T");
+                } else {
+                    print!("{}", i + 1)
                 }
-            }
-
-            if pos == (0, 0) {
+            } else if pos == (0, 0) {
                 print!("s");
             } else {
                 print!(".");
