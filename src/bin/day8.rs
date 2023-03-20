@@ -2,7 +2,11 @@
 
 use std::ops::Range;
 
+// I should've made a little 2D grid data structure but it's too late now :(
 fn main() {
+    //=============================================================================================
+    // Parse map data
+    //=============================================================================================
     let map = include_str!("day8.txt").trim().replace("\r", "");
 
     let mut trees: Vec<_> = map
@@ -21,6 +25,9 @@ fn main() {
     let num_cols = trees.first().unwrap().len();
     assert!(trees.iter().all(|r| r.len() == num_cols));
 
+    //=============================================================================================
+    // Calculate tree visibility
+    //=============================================================================================
     // Calclate east-west visibility
     for row in trees.iter_mut() {
         check_east_west(row.iter_mut());
@@ -33,9 +40,29 @@ fn main() {
         check_north_south(trees.iter_mut().rev(), col);
     }
 
+    //=============================================================================================
     // Part 1: Count the number of visible trees
+    //=============================================================================================
     let total_visible: usize = trees.iter().map(|r| r.iter().filter(|t| t.is_visible).count()).sum();
     println!("Part 1: {total_visible}");
+
+    //=============================================================================================
+    // Part 2: Find the tree with the highest scenic score
+    //=============================================================================================
+    let mut highest_score = 0;
+    for (row_num, row) in trees.iter().enumerate() {
+        for col_num in 0..num_cols {
+            let scenic_score
+                = calculate_partial_scenic_score(&trees, (row_num, col_num), (1, 0), (num_rows, num_cols))
+                * calculate_partial_scenic_score(&trees, (row_num, col_num), (-1, 0), (num_rows, num_cols))
+                * calculate_partial_scenic_score(&trees, (row_num, col_num), (0, 1), (num_rows, num_cols))
+                * calculate_partial_scenic_score(&trees, (row_num, col_num), (0, -1), (num_rows, num_cols))
+            ;
+            highest_score = u32::max(highest_score, scenic_score);
+        }
+    }
+
+    println!("Part 2: {highest_score}");
 }
 
 fn check_east_west<'a, I>(iterator: I)
@@ -63,6 +90,33 @@ where
             tallest_tree = tree.height;
         }
     }
+}
+
+fn calculate_partial_scenic_score(trees: &Vec<Vec<Tree>>, start: (usize, usize), direction: (isize, isize), counts: (usize, usize)) -> u32 {
+    let mut row = start.0;
+    let mut col = start.1;
+    let check_height = trees[row][col].height;
+    let mut score = 0;
+
+    loop {
+        row = row.wrapping_add_signed(direction.0);
+        col = col.wrapping_add_signed(direction.1);
+
+        // We are done if row or column hit the limit (or wrapped from 0 to above the limit)
+        if row >= counts.0 || col >= counts.1 {
+            break;
+        }
+
+        // Another tree another point!
+        score += 1;
+
+        // If this tree is the tallest tree we can see in this direction, we are done
+        if trees[row][col].height >= check_height {
+            break;
+        }
+    }
+
+    score
 }
 
 struct Tree {
