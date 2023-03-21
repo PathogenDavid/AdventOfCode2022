@@ -6,45 +6,59 @@ use regex::Regex;
 fn main() {
     let monkey_business = include_str!("day11.txt").trim().replace("\r", "");
 
-    const NUM_ROUNDS: i32 = 20;
+    println!("Part 1: {}", calculate_monkey_business_level(&monkey_business, 20, false));
+    println!("Part 2: {}", calculate_monkey_business_level(&monkey_business, 10_000, true));
+}
+
+fn calculate_monkey_business_level(monkey_business: &str, num_rounds: i32, extremely_concerned: bool) -> u64 {
     let mut monkeys: Vec<_> = monkey_business.split("\n\n").map(Monkey::new).collect();
+
+    //=============================================================================================
+    // Calculate the worry level management factor
+    //=============================================================================================
+    // Basically if we keep all of the worry levels within 0..worry_level_mode, the divisible by checks
+    // done by the monkeys will have the same result as if they were unbounded.
+    // This is necessary because if we don't keep things in check the worry levels will easily overflow
+    // 64-bit or even 128-bit ingegers.
+    // We apply this unconditionally since it doesn't affect the result at all so it can be used in
+    // part 1 as well.
+    let worry_level_mod: WorryLevel = monkeys.iter().map(|m| m.test_value).product();
 
     //=============================================================================================
     // Simulate the monkey game
     //=============================================================================================
-    for _ in 0..NUM_ROUNDS {
+    for _ in 0..num_rounds {
         for i in 0..monkeys.len() { // Not using iterator on monkeys so we can modify other monkeys
-            while let Some((item, dest)) = monkeys[i].inspect_one() {
+            while let Some((item, dest)) = monkeys[i].inspect_one(extremely_concerned, worry_level_mod) {
                 monkeys[dest].items.push_back(item);
             }
         }
     }
 
     //=============================================================================================
-    // Part 1: Calculate the level of monkey business
+    // Calculate the level of monkey business
     //=============================================================================================
     monkeys.sort_by_key(|m| m.inspect_count);
-    let monkey_business_level: u32 = monkeys
+    monkeys
         .iter()
         .rev()
         .take(2)
         .map(|m| m.inspect_count)
-        .product();
-    println!("Part 1: {monkey_business_level}");
+        .product()
 }
 
-type Item = i32;
+type WorryLevel = i64;
 
 #[derive(Debug)]
 struct Monkey {
     #[allow(unused)]
     id: u32,
-    items: VecDeque<Item>,
+    items: VecDeque<WorryLevel>,
     operation: Operation,
-    test_value: i32,
+    test_value: WorryLevel,
     if_true_dest: usize,
     if_false_dest: usize,
-    inspect_count: u32,
+    inspect_count: u64,
 }
 
 impl Monkey {
@@ -86,14 +100,20 @@ impl Monkey {
     }
 
     /// Return value is pair of [item thrown, destination monkey index] -- or none if no items left to inspect
-    fn inspect_one(&mut self) -> Option<(i32, usize)> {
+    fn inspect_one(&mut self, extremely_concerned: bool, worry_level_mod: WorryLevel) -> Option<(WorryLevel, usize)> {
         let mut item = self.items.pop_front()?;
 
         // Apply worry operation
         item = self.operation.calculate(item);
 
         // Calm down
-        item /= 3;
+        if !extremely_concerned {
+            item /= 3;
+        }
+
+        // Keep worry levels manageable
+        // (Needed for part 2 otherwise numbers start overflowing and all hell breaks loose.)
+        item %= worry_level_mod;
 
         // Log this inspection
         self.inspect_count += 1;
@@ -114,7 +134,7 @@ enum Operation {
 }
 
 impl Operation {
-    fn calculate(&self, old: i32) -> i32 {
+    fn calculate(&self, old: WorryLevel) -> WorryLevel {
         match self {
             Operation::Add(a, b) => a.get_value(old) + b.get_value(old),
             Operation::Mul(a, b) => a.get_value(old) * b.get_value(old),
@@ -125,11 +145,11 @@ impl Operation {
 #[derive(Debug)]
 enum Operand {
     Old,
-    Num(i32),
+    Num(WorryLevel),
 }
 
 impl Operand {
-    fn get_value(&self, old: i32) -> i32 {
+    fn get_value(&self, old: WorryLevel) -> WorryLevel {
         match self {
             Operand::Old => old,
             Operand::Num(x) => *x,
@@ -144,7 +164,7 @@ impl FromStr for Operand {
         if s == "old" {
             Ok(Operand::Old)
         } else {
-            let num: i32 = s.parse()?;
+            let num: WorryLevel = s.parse()?;
             Ok(Operand::Num(num))
         }
     }
